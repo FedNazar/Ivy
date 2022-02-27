@@ -17,5 +17,15 @@
  ### Note
  This algorithm works with UTF-16 encoded files only.
  
+## Example
+
+### Original message
+`Hello World!`
+
+### Encrypted
+Uses the key: `D8W9EF0JBF89W1IQ`
+
+`368 205 -252 -12 -105 360 63 503 378 436 204 -87 `
+ 
 ## Building
  Use Microsoft Visual Studio 2017 (with standard C++ components installed) or higher to compile it.
