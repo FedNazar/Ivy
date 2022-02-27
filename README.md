@@ -16,3 +16,6 @@
  
  ### Note
  This algorithm works with UTF-16 encoded files only.
+ 
+## Building
+ Use Microsoft Visual Studio 2017 (with standard C++ components installed) or higher to compile it.
