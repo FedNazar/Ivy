@@ -1,20 +1,31 @@
 #include "FileHandler.h"
 
-vector<int> ReadEncryptedDataFromFile(string fileName)
+void OpenFile(std::string fileName, std::wifstream *wifstream)
 {
-	vector<int> data;
+	wifstream->open(fileName);
+	wifstream->imbue(std::locale(std::locale(), new std::codecvt_utf16<wchar_t, 0x10ffffUL,
+		std::codecvt_mode::consume_header>));
+}
 
-	wifstream file;
-	
-	file.open(fileName);
-	file.imbue(locale(locale(), new codecvt_utf16<wchar_t, 0x10ffffUL,
-		codecvt_mode::consume_header>));
+void OpenFile(std::string fileName, std::wofstream *wofstream)
+{
+	wofstream->open(fileName);
+	wofstream->imbue(std::locale(std::locale(), new std::codecvt_utf16<wchar_t, 0x10ffffUL,
+		std::codecvt_mode::generate_header>));
+}
 
-	int tmp;
+std::vector<int> ReadEncryptedDataFromFile(std::string fileName)
+{
+	std::vector<int> data;
+
+	std::wifstream file;
+	OpenFile(fileName, &file);
+
+	int encryptedWChar;
 	while (!file.fail())
 	{
-		file >> tmp;
-		data.push_back(tmp);
+		file >> encryptedWChar;
+		data.emplace_back(encryptedWChar);
 	}
 	data.pop_back();
 
@@ -23,17 +34,14 @@ vector<int> ReadEncryptedDataFromFile(string fileName)
 	return data;
 }
 
-wstring ReadDataFromFile(string fileName)
+std::wstring ReadDataFromFile(std::string fileName)
 {
-	wstring data;
+	std::wstring data;
 	
-	wifstream file;
-	file.open(fileName);
+	std::wifstream file;
+	OpenFile(fileName, &file);
 
-	file.imbue(locale(locale(), new codecvt_utf16<wchar_t, 0x10ffffUL, 
-		codecvt_mode::consume_header>));
-
-	wstringstream wss;
+	std::wstringstream wss;
 	wss << file.rdbuf();
 
 	file.close();
@@ -41,30 +49,25 @@ wstring ReadDataFromFile(string fileName)
 	return wss.str();
 }
 
-void WriteEncryptedDataToFile(string fileName, vector<int> data)
+void WriteEncryptedDataToFile(std::string fileName, std::vector<int> *data)
 {
-	wofstream file;
-	file.open(fileName);
-	file.imbue(locale(locale(), new codecvt_utf16<wchar_t, 0x10ffffUL,
-		codecvt_mode::generate_header>));
+	std::wofstream file;
+	OpenFile(fileName, &file);
 
-	int length = data.size();
-	for (int i = 0; i < length; i++)
+	for (auto& i : *data)
 	{
-		file << data[i] << ' ';
+		file << i << ' ';
 	}
 
 	file.close();
 }
 
-void WriteDecryptedDataToFile(string fileName, wstring data)
+void WriteDecryptedDataToFile(std::string fileName, std::wstring *data)
 {
-	wofstream file;
-	file.open(fileName);
-	file.imbue(locale(locale(), new codecvt_utf16<wchar_t, 0x10ffffUL,
-		codecvt_mode::generate_header>));
+	std::wofstream file;
+	OpenFile(fileName, &file);
 
-	file << data;
+	file << *data;
 
 	file.close();
 }

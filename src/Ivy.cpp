@@ -1,39 +1,23 @@
 #include "Ivy.h"
 
-vector<int> IvyEncrypt(wstring data, string key)
+std::vector<int> IvyEncrypt(std::wstring *unencrypted, std::string key)
 {
-	vector<int> encrypted;
+	std::vector<int> encrypted;
 	int charValue;
-	short int aKeyCharNum = 0;
+	size_t aKeyCharNum = 0;
 
-	int dataLength = data.length();
-	int keyLength = key.length();
+	int firstOffset = CalculateFirstOffset(&key);
+	std::vector<int> secondOffsets = CalculateSecondOffsets(&key);
 
-	for (int i = 0; i < dataLength; i++)
+	for (auto& unencryptedWChar : *unencrypted)
 	{
-		charValue = int(data[i]);
-		for (int j = 1; j <= keyLength; j++)
-		{
-			if (j % 2 == 0)
-			{
-				charValue += (int(key[j - 1]) - ASCII_START_POS);
-			}
-			else
-			{
-				charValue -= (int(key[j - 1]) - ASCII_START_POS);
-			}
-		}
+		charValue = int(unencryptedWChar);
 		
-		if (key[aKeyCharNum] % 2 == 0)
-		{
-			charValue += ((key[aKeyCharNum] - ASCII_START_POS) * 16);
-		}
-		else
-		{
-			charValue -= ((key[aKeyCharNum] - ASCII_START_POS) * 8);
-		}
+		charValue -= firstOffset;
 
-		if (aKeyCharNum == keyLength - 1)
+		charValue += secondOffsets[aKeyCharNum];
+
+		if (aKeyCharNum == key.length() - 1)
 		{
 			aKeyCharNum = 0;
 		}
@@ -42,45 +26,29 @@ vector<int> IvyEncrypt(wstring data, string key)
 			aKeyCharNum++;
 		}
 
-		encrypted.push_back(charValue);
+		encrypted.emplace_back(charValue);
 	}
 	return encrypted;
 }
 
-wstring IvyDecrypt(vector<int> encrypted, string key)
+std::wstring IvyDecrypt(std::vector<int> *encrypted, std::string key)
 {
-	wstring decrypted = L"";
-	int charValue;
-	short int aKeyCharNum = 0;
+	std::wstring decrypted = L"";
+	int charValue, currentWChar = 0;
+	size_t aKeyCharNum = 0;
 
-	int encryptedSize = encrypted.size();
-	int keyLength = key.length();
+	int firstOffset = CalculateFirstOffset(&key);
+	std::vector<int> secondOffsets = CalculateSecondOffsets(&key);
 
-	for (int i = 0; i < encryptedSize; i++)
+	for (auto& encryptedWChar : *encrypted)
 	{
-		charValue = encrypted[i];
-		for (int j = 1; j <= keyLength; j++)
-		{
-			if (j % 2 == 0)
-			{
-				charValue -= (int(key[j - 1]) - ASCII_START_POS);
-			}
-			else
-			{
-				charValue += (int(key[j - 1]) - ASCII_START_POS);
-			}
-		}
+		charValue = encryptedWChar;
+		
+		charValue += firstOffset;
 
-		if (key[aKeyCharNum] % 2 == 0)
-		{
-			charValue -= ((key[aKeyCharNum] - ASCII_START_POS) * 16);
-		}
-		else
-		{
-			charValue += ((key[aKeyCharNum] - ASCII_START_POS) * 8);
-		}
+		charValue -= secondOffsets[aKeyCharNum];
 
-		if (aKeyCharNum == keyLength - 1)
+		if (aKeyCharNum == key.length() - 1)
 		{
 			aKeyCharNum = 0;
 		}
@@ -93,5 +61,44 @@ wstring IvyDecrypt(vector<int> encrypted, string key)
 	}
 
 	return decrypted;
+}
+
+int CalculateFirstOffset(std::string *key)
+{
+	int offset = 0, currentKeyChar = 1;
+
+	for (auto& keyChar : *key)
+	{
+		if (currentKeyChar % 2 == 0)
+		{
+			offset -= (int(keyChar) - IVY_NUMBER);
+		}
+		else
+		{
+			offset += (int(keyChar) - IVY_NUMBER);
+		}
+		currentKeyChar++;
+	}
+
+	return offset;
+}
+
+std::vector<int> CalculateSecondOffsets(std::string *key)
+{
+	std::vector<int> offsets;
+
+	for (auto& keyChar : *key)
+	{
+		if (keyChar % 2 == 0)
+		{
+			offsets.emplace_back((keyChar - IVY_NUMBER) * 16);
+		}
+		else
+		{
+			offsets.emplace_back((keyChar - IVY_NUMBER) * -8);
+		}
+	}
+
+	return offsets;
 }
 

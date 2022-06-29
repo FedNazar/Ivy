@@ -2,9 +2,11 @@
 #include <iostream>
 #include <string>
 #include <vector>
-using namespace std;
 
-const int ASCII_START_POS = 47;
+const int IVY_NUMBER = 47;
 
-vector<int> IvyEncrypt(wstring data, string key);
-wstring IvyDecrypt(vector<int> encrypted, string key);
+std::vector<int> IvyEncrypt(std::wstring *unencrypted, std::string key);
+std::wstring IvyDecrypt(std::vector<int> *encrypted, std::string key);
+
+int CalculateFirstOffset(std::string *key);
+std::vector<int> CalculateSecondOffsets(std::string *key);
